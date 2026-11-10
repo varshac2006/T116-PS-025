@@ -1,0 +1,41 @@
+customer_id,name,gender,risk_rating,pep_flag,pep_linked_customer,occupation,expected_monthly_turnover,kyc_expiry_date,mobile
+CUST-001,Abhishek Khan,M,MEDIUM,false,,Real estate agent,350000.00,2027-04-20,9986987973
+CUST-002,Sharath Gowda,M,LOW,false,,Trader - textiles,2500000.00,2027-08-01,9753645568
+CUST-003,Nikhil Gowda,M,MEDIUM,false,,Real estate agent,350000.00,2029-08-05,9940557616
+CUST-004,Meena Joshi,F,MEDIUM,false,,Real estate agent,350000.00,2033-10-16,9684697880
+CUST-005,Ravi Murthy,M,HIGH,false,,Salaried - IT,120000.00,2031-11-04,9967273177
+CUST-006,Mary Kulkarni,F,HIGH,false,,Restaurant owner,300000.00,2031-11-17,9766344002
+CUST-007,Tejaswini Agarwal,F,HIGH,false,,Business owner,900000.00,2028-05-23,9778768045
+CUST-008,Pooja Menon,F,MEDIUM,false,,Homemaker,30000.00,2031-05-15,9267147513
+CUST-009,Shruthi Menon,F,MEDIUM,false,,Business owner,1200000.00,2030-10-18,9193319084
+CUST-010,Shruthi Sharma,F,HIGH,false,,Restaurant owner,1500000.00,2031-08-23,9283792984
+CUST-011,Lokesh Chowdhury,M,HIGH,false,,Business owner,400000.00,2033-10-10,9866283601
+CUST-012,Lakshmi Reddy,F,MEDIUM,false,,Retired,45000.00,2033-01-01,9875475177
+CUST-013,Santosh Verma,M,MEDIUM,false,,Doctor,250000.00,2026-10-07,9931860320
+CUST-014,Basavaraj Setty,M,LOW,false,,Restaurant owner,300000.00,2032-11-01,9283822264
+CUST-015,Yamini Joshi,F,LOW,false,,Retired,45000.00,2028-06-06,9477647258
+CUST-016,Roopa Nair,F,MEDIUM,false,,Real estate agent,350000.00,2033-05-27,9133017568
+CUST-017,Rahul Desai,M,LOW,false,,Business owner,400000.00,2032-10-26,9831948939
+CUST-018,Bindu Shetty,F,HIGH,false,,Trader - textiles,600000.00,2027-05-04,9621052185
+CUST-019,Spoorthi Murthy,F,MEDIUM,false,,Business owner,800000.00,2029-03-09,9410646001
+CUST-020,Rahul Hegde,M,HIGH,true,,Elected representative (MLA),500000.00,2031-10-28,9557990659
+CUST-021,Raghav Menon,M,HIGH,false,CUST-020,Business owner,600000.00,2027-11-12,9846450604
+CUST-022,Fathima Kamath,F,HIGH,false,,Chartered accountant,200000.00,2030-06-19,9085380129
+CUST-023,Prakash Reddy,M,HIGH,false,,Jeweller,900000.00,2031-11-21,9406925666
+CUST-024,Lokesh Chowdhury,M,MEDIUM,false,,Trader - textiles,600000.00,2028-09-01,9886423004
+CUST-025,Keerthi Shetty,F,LOW,false,,Retired,45000.00,2032-10-03,9280845850
+CUST-026,Sandeep Pillai,M,HIGH,false,,Salaried - IT,120000.00,2032-09-28,9265384535
+CUST-027,Shilpa Yadav,F,MEDIUM,false,,Jeweller,900000.00,2030-11-19,9432627058
+CUST-028,Kavya Yadav,F,LOW,false,,Business owner,400000.00,2029-09-24,9421083949
+CUST-029,Pradeep Kulkarni,M,HIGH,false,,Real estate agent,350000.00,2031-11-22,9281126584
+CUST-030,Kavya Kamath,F,LOW,false,,Salaried - IT,100000.00,2028-03-10,9484526309
+CUST-031,Madhuri Desai,F,LOW,false,,Real estate agent,350000.00,2031-01-06,9582201805
+CUST-032,Sumanth Hegde,M,HIGH,false,,Real estate agent,350000.00,2031-10-08,9215711649
+CUST-033,Meena Desai,F,HIGH,false,,Restaurant owner,2000000.00,2027-09-17,9357951117
+CUST-034,Sowmya Prabhu,F,LOW,false,,Restaurant owner,300000.00,2029-07-17,9855765237
+CUST-035,Rohit Prabhu,M,LOW,false,,Retired,45000.00,2033-10-13,9327926451
+CUST-036,Pavithra Murthy,F,LOW,false,,Jeweller,900000.00,2031-11-09,9352814497
+CUST-037,Varsha Sharma,F,MEDIUM,false,,Real estate agent,350000.00,2032-07-11,9178836550
+CUST-038,Asha Sharma,F,MEDIUM,false,,Doctor,250000.00,2029-03-11,9996775003
+CUST-039,Venkatesh Naik,M,MEDIUM,false,,Homemaker,30000.00,2033-08-17,9495183801
+CUST-040,Nikhil Iyer,M,LOW,false,,Jeweller,900000.00,2032-03-23,9419689821

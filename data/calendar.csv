@@ -1,0 +1,123 @@
+date,day_name,is_working_day,reason
+2026-09-01,Tue,true,
+2026-09-02,Wed,true,
+2026-09-03,Thu,true,
+2026-09-04,Fri,true,
+2026-09-05,Sat,true,
+2026-09-06,Sun,false,Sunday
+2026-09-07,Mon,true,
+2026-09-08,Tue,true,
+2026-09-09,Wed,true,
+2026-09-10,Thu,true,
+2026-09-11,Fri,true,
+2026-09-12,Sat,false,2nd/4th Saturday
+2026-09-13,Sun,false,Sunday
+2026-09-14,Mon,false,Ganesh Chaturthi
+2026-09-15,Tue,true,
+2026-09-16,Wed,true,
+2026-09-17,Thu,true,
+2026-09-18,Fri,true,
+2026-09-19,Sat,true,
+2026-09-20,Sun,false,Sunday
+2026-09-21,Mon,true,
+2026-09-22,Tue,true,
+2026-09-23,Wed,true,
+2026-09-24,Thu,true,
+2026-09-25,Fri,true,
+2026-09-26,Sat,false,2nd/4th Saturday
+2026-09-27,Sun,false,Sunday
+2026-09-28,Mon,true,
+2026-09-29,Tue,true,
+2026-09-30,Wed,true,
+2026-10-01,Thu,true,
+2026-10-02,Fri,false,Gandhi Jayanti
+2026-10-03,Sat,true,
+2026-10-04,Sun,false,Sunday
+2026-10-05,Mon,true,
+2026-10-06,Tue,true,
+2026-10-07,Wed,true,
+2026-10-08,Thu,true,
+2026-10-09,Fri,true,
+2026-10-10,Sat,false,2nd/4th Saturday
+2026-10-11,Sun,false,Sunday
+2026-10-12,Mon,true,
+2026-10-13,Tue,true,
+2026-10-14,Wed,true,
+2026-10-15,Thu,true,
+2026-10-16,Fri,true,
+2026-10-17,Sat,true,
+2026-10-18,Sun,false,Sunday
+2026-10-19,Mon,false,Ayudha Puja
+2026-10-20,Tue,false,Vijaya Dashami
+2026-10-21,Wed,true,
+2026-10-22,Thu,true,
+2026-10-23,Fri,true,
+2026-10-24,Sat,false,2nd/4th Saturday
+2026-10-25,Sun,false,Sunday
+2026-10-26,Mon,true,
+2026-10-27,Tue,true,
+2026-10-28,Wed,true,
+2026-10-29,Thu,true,
+2026-10-30,Fri,true,
+2026-10-31,Sat,true,
+2026-11-01,Sun,false,Sunday
+2026-11-02,Mon,true,
+2026-11-03,Tue,true,
+2026-11-04,Wed,true,
+2026-11-05,Thu,true,
+2026-11-06,Fri,true,
+2026-11-07,Sat,true,
+2026-11-08,Sun,false,Sunday
+2026-11-09,Mon,false,Deepavali
+2026-11-10,Tue,false,Balipadyami
+2026-11-11,Wed,true,
+2026-11-12,Thu,true,
+2026-11-13,Fri,true,
+2026-11-14,Sat,false,2nd/4th Saturday
+2026-11-15,Sun,false,Sunday
+2026-11-16,Mon,true,
+2026-11-17,Tue,true,
+2026-11-18,Wed,true,
+2026-11-19,Thu,true,
+2026-11-20,Fri,true,
+2026-11-21,Sat,true,
+2026-11-22,Sun,false,Sunday
+2026-11-23,Mon,true,
+2026-11-24,Tue,true,
+2026-11-25,Wed,true,
+2026-11-26,Thu,true,
+2026-11-27,Fri,false,Kanakadasa Jayanti
+2026-11-28,Sat,false,2nd/4th Saturday
+2026-11-29,Sun,false,Sunday
+2026-11-30,Mon,true,
+2026-12-01,Tue,true,
+2026-12-02,Wed,true,
+2026-12-03,Thu,true,
+2026-12-04,Fri,true,
+2026-12-05,Sat,true,
+2026-12-06,Sun,false,Sunday
+2026-12-07,Mon,true,
+2026-12-08,Tue,true,
+2026-12-09,Wed,true,
+2026-12-10,Thu,true,
+2026-12-11,Fri,true,
+2026-12-12,Sat,false,2nd/4th Saturday
+2026-12-13,Sun,false,Sunday
+2026-12-14,Mon,true,
+2026-12-15,Tue,true,
+2026-12-16,Wed,true,
+2026-12-17,Thu,true,
+2026-12-18,Fri,true,
+2026-12-19,Sat,true,
+2026-12-20,Sun,false,Sunday
+2026-12-21,Mon,true,
+2026-12-22,Tue,true,
+2026-12-23,Wed,true,
+2026-12-24,Thu,true,
+2026-12-25,Fri,false,Christmas
+2026-12-26,Sat,false,2nd/4th Saturday
+2026-12-27,Sun,false,Sunday
+2026-12-28,Mon,true,
+2026-12-29,Tue,true,
+2026-12-30,Wed,true,
+2026-12-31,Thu,true,
