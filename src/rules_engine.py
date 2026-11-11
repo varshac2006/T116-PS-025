@@ -687,3 +687,96 @@ def detect_kyc_alerts(transactions, customers, accounts):
             })
 
     return findings
+
+def calculate_weighted_score(raw_score, risk_rating):
+    """
+    BR-10: Apply customer risk multipliers.
+    """
+
+    risk_multipliers = {
+        "LOW": 0.8,
+        "MEDIUM": 1.0,
+        "HIGH": 1.5
+    }
+
+    risk_rating = str(risk_rating).strip().upper()
+
+    if risk_rating not in risk_multipliers:
+        raise ValueError(
+            f"Invalid risk rating: {risk_rating}"
+        )
+
+    multiplier = risk_multipliers[risk_rating]
+
+    weighted_score = raw_score * multiplier
+
+    return {
+        "raw_score": raw_score,
+        "risk_rating": risk_rating,
+        "risk_multiplier": multiplier,
+        "weighted_score": weighted_score
+    }
+
+def evaluate_alert_threshold(weighted_score):
+    """
+    BR-11: Determine whether an alert should be generated
+    and whether it should be marked as priority.
+    """
+    if weighted_score >= 70:
+        return {
+            "alert_required": True,
+            "priority": True,
+            "status": "PRIORITY"
+        }
+
+    elif weighted_score >= 50:
+        return {
+            "alert_required": True,
+            "priority": False,
+            "status": "NORMAL"
+        }
+
+    else:
+        return {
+            "alert_required": False,
+            "priority": False,
+            "status": "NO ALERT"
+        }
+
+
+def calculate_merge_bonus(merge_count):
+    """
+    BR-12: Calculate bonus points for merged alerts.
+    """
+    bonus = min(merge_count * 5, 20)
+    return bonus
+
+
+def should_merge_alert(
+    existing_customer_id,
+    new_customer_id,
+    existing_rule_id,
+    new_rule_id,
+    existing_date,
+    new_date,
+    case_state
+):
+    """
+    BR-12: Check whether a new alert should merge
+    into an existing open case.
+    """
+    if existing_customer_id != new_customer_id:
+        return False
+
+    if existing_rule_id != new_rule_id:
+        return False
+
+    if case_state not in ["OPEN", "UNDER_REVIEW", "ESCALATED"]:
+        return False
+
+    old_date = datetime.strptime(existing_date, "%Y-%m-%d")
+    current_date = datetime.strptime(new_date, "%Y-%m-%d")
+
+    days_difference = (current_date - old_date).days
+
+    return 0 <= days_difference <= 7

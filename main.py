@@ -18,7 +18,11 @@ from src.rules_engine import (
     detect_rapid_movement,
     detect_dormant_reactivation,
     detect_pep_alerts,
-    detect_kyc_alerts
+    detect_kyc_alerts,
+    calculate_weighted_score,
+    evaluate_alert_threshold,
+    calculate_merge_bonus,
+    should_merge_alert
 )
 
 
@@ -220,3 +224,65 @@ for finding in kyc_findings:
         "Amount:", finding["amount"],
         "Score:", finding["raw_score"]
     )   
+print("\nRISK WEIGHTING TEST - BR-10")
+print("---------------------------")
+
+for risk in ["LOW", "MEDIUM", "HIGH"]:
+    result = calculate_weighted_score(60, risk)
+
+    print(
+        risk,
+        "Multiplier:", result["risk_multiplier"],
+        "Weighted Score:", result["weighted_score"]
+    )
+print("\nALERT THRESHOLD TEST - BR-11")
+print("-----------------------------")
+
+test_scores = [40, 50, 60, 70, 90]
+
+for score in test_scores:
+    result = evaluate_alert_threshold(score)
+
+    print(
+        "Score:", score,
+        "| Status:", result["status"],
+        "| Priority:", result["priority"]
+    )  
+print("\nALERT SUPPRESSION TEST - BR-12")
+print("--------------------------------")
+
+# Same customer, same rule, exactly 7 days apart
+result1 = should_merge_alert(
+    "CUST-023", "CUST-023",
+    "BR-03", "BR-03",
+    "2026-09-04", "2026-09-11",
+    "OPEN"
+)
+
+print("Same customer and rule, 7 days apart:", result1)
+
+# Different customer
+result2 = should_merge_alert(
+    "CUST-023", "CUST-018",
+    "BR-03", "BR-03",
+    "2026-09-04", "2026-09-05",
+    "OPEN"
+)
+
+print("Different customer:", result2)
+
+# Closed case
+result3 = should_merge_alert(
+    "CUST-023", "CUST-023",
+    "BR-03", "BR-03",
+    "2026-09-04", "2026-09-05",
+    "CLOSED_NO_ACTION"
+)
+
+print("Closed case:", result3)
+
+# Merge bonus
+print("\nMerge bonus tests:")
+
+for count in [1, 2, 3, 4, 5]:
+    print("Merges:", count, "| Bonus:", calculate_merge_bonus(count))          
