@@ -223,12 +223,12 @@ def build_alert_record(
         "customer_id": customer_id,
         "rule_ids": "|".join(rule_ids),
         "raw_score": round(float(raw_score), 1),
-        "pep_kyc_adders": pep_kyc_adders,
+        "pep_kyc_adders": int(pep_kyc_adders),
         "risk_multiplier": scoring["risk_multiplier"],
-        "merge_bonus": scoring["merge_bonus"],
-        "weighted_score": scoring["weighted_score"],
-        "priority": priority,
+        "merge_bonus": int(scoring["merge_bonus"]),
+        "weighted_score": round(float(scoring["weighted_score"]), 1),
+        "priority": str(priority).lower(),
         "case_id": case_id,
         "action": action,
-        "evidence_txn_ids": "|".join(evidence_ids)
+        "evidence_txn_ids": " ".join(evidence_ids)
     }

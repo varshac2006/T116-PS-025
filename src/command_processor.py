@@ -71,6 +71,7 @@ class AMLCommandProcessor:
 
         self.rule_findings = {}
         self.current_date = None
+        self.processed_days = set()
 
     # ---------------------------------------------------------
     # MAIN COMMAND RUNNER
@@ -114,6 +115,11 @@ class AMLCommandProcessor:
             return
 
         evaluation_date, file_name = arguments
+        if evaluation_date in self.processed_days:
+            print(f"Day {evaluation_date} already processed, skipping.")
+            return
+
+        self.processed_days.add(evaluation_date)
         self.current_date = evaluation_date
 
         daily_records = load_daily_transactions(file_name)
@@ -264,26 +270,21 @@ class AMLCommandProcessor:
         pep_ids = {
             c["customer_id"]
             for c in self.customers
-            if str(c.get("pep", "")).strip().lower()
+            if str(c.get("pep_flag", "")).strip().lower()
             in ("true", "1", "yes")
         }
 
+        # Include linked family members of a PEP
+        for c in self.customers:
+            linked = c.get("pep_linked_customer", "").strip()
+            if linked and linked in pep_ids:
+                pep_ids.add(c["customer_id"])
+
         customer_id = customer["customer_id"]
-
         is_pep = customer_id in pep_ids
+        pep_adder = 20 if is_pep else 0
 
-        is_pep_linked = any(
-            c.get("pep_linked_customer") == customer_id
-            for c in self.customers
-        )
-
-        is_pep_linked = is_pep_linked or (
-            customer.get("pep_linked_customer") in pep_ids
-        )
-
-        pep_adder = 20 if (is_pep or is_pep_linked) else 0
-
-        expiry = customer.get("kyc_expiry_date", "")
+        expiry = customer.get("kyc_expiry_date", "").strip()
         is_kyc_expired = bool(expiry) and (
             self.current_date > expiry
         )
@@ -294,7 +295,7 @@ class AMLCommandProcessor:
             return pep_adder
 
         if rule_name == "kyc":
-            return 0
+            return pep_adder
 
         return pep_adder + kyc_adder
 
@@ -546,34 +547,38 @@ class AMLCommandProcessor:
                 # Read evidence IDs directly from the alert record.
                 alert_evidence = alert.get("evidence_txn_ids", [])
 
-                # Alert evidence is normally stored as a pipe-separated string.
                 if isinstance(alert_evidence, str):
                     alert_evidence = [
                         txn_id.strip()
-                        for txn_id in alert_evidence.split("|")
+                        for txn_id in alert_evidence.replace("|", " ").split()
                         if txn_id.strip()
                     ]
-
-                # Also support list-based evidence.
                 elif isinstance(alert_evidence, (list, tuple, set)):
                     alert_evidence = list(alert_evidence)
-
                 else:
                     alert_evidence = []
 
-                # Add only complete transaction IDs.
                 evidence_ids.update(alert_evidence)
-
-            evidence_ids = sorted(evidence_ids)
 
             transaction_lookup = {
                 transaction["txn_id"]: transaction
-                for transaction in self.all_transactions
+                for transaction in (self.prior_transactions + self.all_transactions)
             }
+
+            def get_txn_time(tid):
+                txn = transaction_lookup.get(tid)
+                if txn and "txn_ts" in txn:
+                    return txn["txn_ts"]
+                return ""
+
+            sorted_evidence_ids = sorted(
+                evidence_ids,
+                key=lambda tid: (get_txn_time(tid), tid)
+            )
 
             total_amount = 0.0
 
-            for txn_id in evidence_ids:
+            for txn_id in sorted_evidence_ids:
                 transaction = transaction_lookup.get(txn_id)
 
                 if transaction is not None:
@@ -600,7 +605,7 @@ class AMLCommandProcessor:
                 "filed_on": action_ts,
                 "within_sla": str(within_sla).lower(),
                 "total_amount": round(total_amount, 2),
-                "evidence_txn_ids": "|".join(evidence_ids),
+                "evidence_txn_ids": " ".join(sorted_evidence_ids),
             }
 
             self.str_records.append(str_record)
@@ -614,7 +619,7 @@ class AMLCommandProcessor:
     # ---------------------------------------------------------
 
     def generate_ctr(self, arguments):
-        if len(arguments) != 1:
+        if not arguments or not arguments[0]:
             print("Invalid GENERATE_CTR command:", arguments)
             return
 
@@ -638,11 +643,8 @@ class AMLCommandProcessor:
     # ---------------------------------------------------------
 
     def print_alert_log(self, arguments):
-        if len(arguments) != 2:
-            print("Invalid PRINT_ALERT_LOG command:", arguments)
-            return
-
-        from_date, to_date = arguments
+        from_date = arguments[0] if len(arguments) > 0 and arguments[0] else "2026-09-01"
+        to_date = arguments[1] if len(arguments) > 1 and arguments[1] else (self.current_date or "2026-10-30")
 
         try:
             output_path = generate_alert_log(
@@ -661,11 +663,7 @@ class AMLCommandProcessor:
     # ---------------------------------------------------------
 
     def print_cases(self, arguments):
-        if len(arguments) != 1:
-            print("Invalid PRINT_CASES command:", arguments)
-            return
-
-        as_of_date = arguments[0]
+        as_of_date = arguments[0] if len(arguments) > 0 and arguments[0] else (self.current_date or "2026-10-30")
 
         try:
             case_records = self.case_manager.get_case_register()
@@ -685,11 +683,8 @@ class AMLCommandProcessor:
     # ---------------------------------------------------------
 
     def print_str_report(self, arguments):
-        if len(arguments) != 2:
-            print("Invalid PRINT_STR_REPORT command:", arguments)
-            return
-
-        from_date, to_date = arguments
+        from_date = arguments[0] if len(arguments) > 0 and arguments[0] else "2026-09-01"
+        to_date = arguments[1] if len(arguments) > 1 and arguments[1] else (self.current_date or "2026-10-30")
 
         try:
             output_path = generate_str_report(

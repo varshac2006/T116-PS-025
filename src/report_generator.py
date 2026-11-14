@@ -183,8 +183,8 @@ def build_ctr_records(
             ),
             "ctr_type": "DAILY",
             "txn_date_or_month": txn_date,
-            "total_cash": finding["total_cash"],
-            "txn_ids": "|".join(transaction_ids),
+            "total_cash": f"{float(finding['total_cash']):.2f}",
+            "txn_ids": " ".join(transaction_ids),
             "due_date": finding.get("due_date", "")
         })
 
@@ -206,8 +206,8 @@ def build_ctr_records(
             ),
             "ctr_type": "MONTHLY",
             "txn_date_or_month": finding["month"],
-            "total_cash": finding["total_cash"],
-            "txn_ids": "|".join(transaction_ids),
+            "total_cash": f"{float(finding['total_cash']):.2f}",
+            "txn_ids": " ".join(transaction_ids),
             "due_date": finding.get("due_date", "")
         })
 
@@ -253,15 +253,38 @@ def generate_str_report(
 ):
     """Generate the STR report for an inclusive date range."""
 
-    records = filter_date_range(
+    filtered = filter_date_range(
         str_records,
         "filed_on",
         from_date,
         to_date
     )
 
+    formatted_records = []
+    for rec in filtered:
+        evidence = rec.get("evidence_txn_ids", "")
+        if isinstance(evidence, (list, tuple, set)):
+            evidence_str = " ".join(evidence)
+        elif isinstance(evidence, str):
+            evidence_str = " ".join(evidence.replace("|", " ").split())
+        else:
+            evidence_str = ""
+
+        formatted_records.append({
+            "str_id": rec.get("str_id", ""),
+            "case_id": rec.get("case_id", ""),
+            "customer_id": rec.get("customer_id", ""),
+            "escalated_on": rec.get("escalated_on", ""),
+            "filed_on": rec.get("filed_on", ""),
+            "within_sla": str(rec.get("within_sla", "")).lower(),
+            "total_amount": f"{float(rec.get('total_amount', 0)):.2f}",
+            "evidence_txn_ids": evidence_str
+        })
+
+    formatted_records.sort(key=lambda r: r["filed_on"])
+
     return write_csv(
         Path(output_dir) / "str_report.csv",
-        records,
+        formatted_records,
         STR_COLUMNS
     )

@@ -48,15 +48,27 @@ def detect_daily_ctr(transactions):
         total_cash = sum(float(txn["amount"]) for txn in records)
 
         if total_cash > CTR_THRESHOLD:
+            # CTR filing deadline: 15th of the following month
+            year = txn_date.year
+            month = txn_date.month
+            if month == 12:
+                due_date = f"{year + 1}-01-15"
+            else:
+                due_date = f"{year}-{month + 1:02d}-15"
+
+            sorted_txns = sorted(
+                records,
+                key=lambda txn: parse_timestamp(txn["txn_ts"])
+            )
+
             alerts.append({
                 "rule_id": "BR-01",
                 "account_id": account_id,
                 "txn_date": txn_date.isoformat(),
                 "total_cash": round(total_cash, 2),
-                "txn_ids": sorted(
-                    records,
-                    key=lambda txn: parse_timestamp(txn["txn_ts"])
-                )
+                "txn_ids": [txn["txn_id"] for txn in sorted_txns],
+                "evidence_transactions": sorted_txns,
+                "due_date": due_date
             })
 
     return alerts
@@ -81,15 +93,27 @@ def detect_monthly_ctr(transactions):
         total_cash = sum(float(txn["amount"]) for txn in records)
 
         if total_cash > CTR_THRESHOLD:
+            # CTR filing deadline: 15th of the following month
+            year = int(month[:4])
+            m_num = int(month[5:7])
+            if m_num == 12:
+                due_date = f"{year + 1}-01-15"
+            else:
+                due_date = f"{year}-{m_num + 1:02d}-15"
+
+            sorted_txns = sorted(
+                records,
+                key=lambda txn: parse_timestamp(txn["txn_ts"])
+            )
+
             alerts.append({
                 "rule_id": "BR-02",
                 "account_id": account_id,
                 "month": month,
                 "total_cash": round(total_cash, 2),
-                "txn_ids": sorted(
-                    records,
-                    key=lambda txn: parse_timestamp(txn["txn_ts"])
-                )
+                "txn_ids": [txn["txn_id"] for txn in sorted_txns],
+                "evidence_transactions": sorted_txns,
+                "due_date": due_date
             })
 
     return alerts
@@ -563,6 +587,7 @@ def detect_dormant_reactivation(
             "customer_id": customer_id,
             "total_amount": total_amount,
             "score": 30,
+            "raw_score": 30,
             "evaluation_date": evaluation_date.isoformat(),
             "evidence_txn_ids": evidence_ids
         })
@@ -597,9 +622,9 @@ def detect_pep_alerts(transactions, customers, accounts):
     for customer in customers:
         linked_customer = customer.get(
             "pep_linked_customer", ""
-        )
+        ).strip()
 
-        if linked_customer in pep_customers:
+        if linked_customer and linked_customer in pep_customers:
             pep_customers.add(customer["customer_id"])
 
     findings = []
@@ -618,11 +643,13 @@ def detect_pep_alerts(transactions, customers, accounts):
             continue
 
         if amount > 500000:
+            txn_id = txn.get("txn_id")
             findings.append({
                 "rule_id": "BR-08",
                 "customer_id": customer_id,
                 "account_id": txn.get("account_id"),
-                "transaction_id": txn.get("txn_id"),
+                "transaction_id": txn_id,
+                "evidence_txn_ids": [txn_id] if txn_id else [],
                 "amount": amount,
                 "raw_score": 20
             })
@@ -677,11 +704,13 @@ def detect_kyc_alerts(transactions, customers, accounts):
             continue
 
         if txn_date > expiry_date and amount > 100000:
+            txn_id = txn.get("txn_id")
             findings.append({
                 "rule_id": "BR-09",
                 "customer_id": customer_id,
                 "account_id": txn["account_id"],
-                "transaction_id": txn["txn_id"],
+                "transaction_id": txn_id,
+                "evidence_txn_ids": [txn_id] if txn_id else [],
                 "amount": amount,
                 "raw_score": 15
             })

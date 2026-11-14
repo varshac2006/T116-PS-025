@@ -242,7 +242,7 @@ class CaseManager:
             )
 
             if elapsed_days > allowed_days:
-                self.record_sla_breach(case, "REVIEW")
+                self.record_sla_breach(case, "UNDER_REVIEW")
 
             case["state"] = "UNDER_REVIEW"
             case["under_review_on"] = action_ts
@@ -291,7 +291,7 @@ class CaseManager:
             )
 
             if elapsed_days > 7:
-                self.record_sla_breach(case, "STR")
+                self.record_sla_breach(case, "STR_FILED")
 
             case["state"] = "STR_FILED"
             case["str_filed_on"] = action_ts
@@ -338,7 +338,7 @@ class CaseManager:
                 "sla_breaches": " ".join(
                     case["sla_breaches"]
                 ),
-                "alert_ids": "|".join(case["alert_ids"])
+                "alert_ids": " ".join(case["alert_ids"])
             })
 
         return records
