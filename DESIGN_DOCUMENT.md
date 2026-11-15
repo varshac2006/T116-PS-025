@@ -1,261 +1,303 @@
-﻿# PS-025: AML Transaction Monitoring System
-## Engineering Design Document & Technical Viva Reference
+# AML Transaction Monitoring System
+## Design Document — PS-025
 
-**Problem Statement:** PS-025 – AML Transaction Monitoring with Structuring, Velocity and PEP Rules  
-**Team:** T116  
-**Domain:** Banking, Financial Services & Insurance (BFSI) Compliance  
-**Author:** Senior Software Engineer, AML Domain Expert & QA Lead  
-**Submission Date:** November 2026  
+**Team ID:** T116  
+**Team Members:** Varsha C, Varsha R  
+**Section:** ISE D  
+**Domain:** Banking, Financial Services and Insurance (BFSI)  
+**Technology:** Python 3.10+  
+**Project Type:** Command-file-driven transaction monitoring system
 
 ---
 
 ## 1. Executive Summary
 
-This document details the architectural design, mathematical models, regulatory foundations, and verification results for the Anti-Money Laundering (AML) Transaction Monitoring engine developed for Problem Statement **PS-025**.
+The AML Transaction Monitoring System is a Python-based application designed to analyse banking transactions and identify patterns that may require further review.
 
-The engine processes retail banking transactions, identifies illicit typologies (structuring, velocity abuse, rapid movements, round-tripping, dormant account reactivation, PEP exposure, and expired-KYC credits), orchestrates investigation workflows under strict regulatory Service Level Agreements (SLAs), and produces submission-grade regulatory returns (CTR and STR) complying with Financial Intelligence Unit – India (FIU-IND) and Prevention of Money Laundering Act (PMLA) norms.
+The system processes customer, account, branch, calendar and transaction data. It validates transaction records, evaluates configured monitoring rules, calculates risk scores, generates alerts, manages investigation cases and produces compliance-related reports.
 
----
+The application follows a modular, command-driven architecture. It does not require a graphical user interface.
 
-## 2. Regulatory & Business Context
+The implementation is intended for the PS-025 academic assignment and uses sample data. It is not a replacement for a bank's production compliance system or professional regulatory review.
 
-### 2.1 Prevention of Money Laundering Act (PMLA) & FIU-IND Guidelines
-In banking operations, financial institutions must maintain a record of all transactions and report specified cash and suspicious activities to FIU-IND:
-1. **Cash Transaction Report (CTR)**:
-   - **Daily CTR (BR-01)**: All cash transactions (deposits and withdrawals) where the day’s aggregate cash exceeds ₹10,00,000 for an individual account.
-   - **Monthly CTR (BR-02)**: Series of integrally connected cash transactions totalling more than ₹10,00,000 in a calendar month.
-   - **Statutory Deadline**: 15th day of the succeeding month (e.g., September CTR is due by October 15).
-2. **Suspicious Transaction Report (STR)**:
-   - Mandatory filing for transactions giving rise to reasonable suspicion of being proceeds of crime, unusually complex, or lacking economic rationale.
-   - **Statutory SLA**: Filed within 7 working days of principal officer escalation.
-3. **Politically Exposed Persons (PEPs)**:
-   - Senior public officials, political figures, and their immediate family members/close associates present elevated corruption and money laundering risk. Enhanced Due Diligence (EDD) applies, including lower alert thresholds and familial linkage.
+## 2. Project Objectives
 
----
+The main objectives are:
 
-## 3. System Architecture & Component Design
+- Validate customer account and transaction information.
+- Identify suspicious transaction patterns using defined business rules.
+- Calculate weighted risk scores.
+- Generate and manage customer alerts.
+- Support investigation case workflows.
+- Track review and filing deadlines using a working-day calendar.
+- Generate alert, case, CTR and STR reports.
+- Test business rules, validation and system integration.
 
-The application follows a **deterministic, command-file-driven pipeline** architecture built entirely on Python 3.10+ standard libraries with zero external dependencies.
+## 3. System Architecture
 
-```
-                  ┌───────────────────────────────┐
-                  │          commands.txt         │
-                  └───────────────┬───────────────┘
-                                  │ (Strict File Order)
-                                  ▼
-                     ┌────────────────────────┐
-                     │  AMLCommandProcessor   │
-                     └────────────┬───────────┘
-                                  │
-          ┌───────────────────────┼───────────────────────┐
-          ▼                       ▼                       ▼
-┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│   Data Loader    │    │ Transaction Proc │    │   Rules Engine   │
-│ (Master & Daily) │    │ (Validate & Dedup│    │ (BR-01 to BR-12) │
-└──────────────────┘    └──────────────────┘    └─────────┬────────┘
-                                                          │
-                                                          ▼
-                                                ┌──────────────────┐
-                                                │  Alert Manager   │
-                                                │ (Scoring BR-16)  │
-                                                └─────────┬────────┘
-                                                          │
-                                                          ▼
-                                                ┌──────────────────┐
-                                                │   Case Manager   │
-                                                │ (SLA Clocks)     │
-                                                └─────────┬────────┘
-                                                          │
-                                                          ▼
-                                                ┌──────────────────┐
-                                                │ Report Generator │
-                                                │ (CTR, STR, Logs) │
-                                                └──────────────────┘
+The application is divided into modules so that each component has a specific responsibility.
+
+```text
+             Input CSV Files
+                   |
+                   v
+              Data Loader
+                   |
+                   v
+         Transaction Validation
+                   |
+                   v
+          Transaction Processor
+                   |
+                   v
+              Rules Engine
+                   |
+                   v
+              Alert Manager
+                   |
+                   v
+              Case Manager
+                   |
+                   v
+            Report Generator
+                   |
+                   v
+             Output CSV Files
 ```
 
-### 3.1 Component Responsibilities
-- `src.data_loader`: Loads master entities (`customers.csv`, `accounts.csv`, `branches.csv`, `calendar.csv`, `prior_transactions.csv`) and parses `commands.txt` ignoring comments and whitespace.
-- `src.transaction_processor`: Validates required fields, timestamp formats, positive finite amounts, known accounts, known branches, and filters duplicate transaction IDs (internal and cross-day).
-- `src.rules_engine`: Implements pure, isolated detection algorithms for BR-01 through BR-12.
-- `src.alert_manager`: Executes the prescribed BR-16 multi-step scoring pipeline, applies customer risk multipliers, suppression windows, merge bonuses, and 6-month STR priority overrides.
-- `src.case_manager`: Manages the case state machine (`OPEN` -> `UNDER_REVIEW` -> `ESCALATED` -> `STR_FILED` / `CLOSED_NO_ACTION`), enforces working-day SLA clocks using `calendar.csv`, and prevents duplicate alerts.
-- `src.report_generator`: Exports official evaluation CSVs (`alert_log.csv`, `case_register.csv`, `ctr_2026_09.csv`, `str_report.csv`) conforming to exact schemas and column formats.
+### 3.1 Module Responsibilities
 
----
+| Module | Responsibility |
+|---|---|
+| `main.py` | Starts the application and displays the execution summary |
+| `data_loader.py` | Loads input CSV files and command instructions |
+| `transaction_processor.py` | Validates and processes transaction records |
+| `rules_engine.py` | Evaluates transaction monitoring rules |
+| `alert_manager.py` | Calculates risk scores and prepares alert records |
+| `case_manager.py` | Manages case states, actions and SLA tracking |
+| `command_processor.py` | Coordinates the complete command-driven workflow |
+| `report_generator.py` | Generates the required CSV reports |
 
-## 4. AML Business Rules Specification
+## 4. Input Data
 
-### BR-01 & BR-02: Cash Transaction Reports (CTR)
-- **Daily CTR (BR-01)**: Identifies accounts where total cash (`CASH_DEPOSIT` + `CASH_WITHDRAWAL`) strictly exceeds ₹10,00,000 on a single date.
-- **Monthly CTR (BR-02)**: Identifies accounts where total cash transactions across a calendar month strictly exceed ₹10,00,000.
-- **Due Date**: Computed dynamically as the 15th of the subsequent month (e.g., `2026-10-15` for September transactions).
+The system uses structured CSV files.
 
-### BR-03: Structuring (Smurfing)
-- Detects deliberate evasion of the ₹10 lakh CTR threshold via 3 or more cash deposits, each between ₹9,00,000 and ₹9,99,999 inclusive, within any rolling 7-day window.
-- **Base Score**: 40.
-- **Branch Dispersion Adder**: If deposits occur across 2 or more distinct branch IDs, adds +20 points (total raw score = 60).
-- **Window Boundary**: Strictly inclusive of $7 \times 24$ hours from the initial deposit timestamp.
+The input data includes:
 
-### BR-04: Velocity Abuse
-- Identifies rapid credit accumulation disproportionate to customer declared profile within a rolling 30-day window (`evaluation_date - 30 days` to `evaluation_date 23:59:59`).
-- Considers incoming credits (`CASH_DEPOSIT`, `TRANSFER_IN`).
-- **Account Age Rule**: If account age on the evaluation date is $< 90$ days, expected monthly turnover is overridden to ₹2,00,000 regardless of master data.
-- **Thresholds**:
-  - Credits $> 5 \times$ Expected Turnover: Raw Score = 50.
-  - Credits $> 3 \times$ Expected Turnover (and $\le 5\times$): Raw Score = 30.
-  - Credits $\le 3 \times$ Expected Turnover: No score (0).
+- Customer details and risk ratings
+- Account information
+- Branch information
+- Working-day calendar
+- Historical transactions
+- Daily transaction files
+- Command instructions
 
-### BR-05 & BR-06: Rapid Movement & Round Trip
-- **Rapid Movement (BR-05)**: An incoming credit $> ₹2,00,000$ where $\ge 80\%$ is transferred out via `TRANSFER_OUT` within 48 hours ($t_{\text{credit}} < t_{\text{debit}} \le t_{\text{credit}} + 48\,\text{hours}$). Raw Score = 35.
-- **Round Trip (BR-06)**: If the outward transfer's counterparty account matches the inward transfer's counterparty account, an additional +25 points are added (total raw score = 60).
+The transaction records contain fields such as transaction ID, account ID, timestamp, transaction type, amount and channel.
 
-### BR-07: Dormant Account Reactivation
-- Identifies accounts with no customer-initiated transactions for $\ge 365$ days, followed by aggregate activity $> ₹5,00,000$ within a 30-day window.
-- **Exclusion**: System interest credits (`INTEREST_CREDIT`) during the 12 months do **not** break dormancy. Raw Score = 30.
+## 5. Transaction Validation
 
-### BR-08: Politically Exposed Persons (PEP)
-- Any single transaction $> ₹5,00,000$ by a PEP customer (or a family member linked via `pep_linked_customer`) independently generates an alert with base score 20.
-- PEP status also adds a mandatory +20 adder to **every** alert raised for that customer.
+Before rule evaluation, transaction records are checked for validity.
 
-### BR-09: Expired KYC
-- A credit $> ₹1,00,000$ on an account with expired KYC independently generates an alert with score 15.
-- KYC is valid on the expiry date itself; it is expired strictly when $\text{txn\_date} > \text{kyc\_expiry\_date}$.
-- Expired KYC adds +10 points to any existing alert.
+The validation process includes:
 
----
+- Required field checks
+- Account ID validation
+- Transaction ID duplicate checks
+- Timestamp format validation
+- Transaction type validation
+- Channel validation
+- Positive and finite transaction amount checks
+- Optional branch ID validation when a branch ID is supplied
 
-## 5. Scoring & Precedence Order (BR-16)
+Invalid records are recorded separately from valid transactions. Duplicate transaction IDs are prevented from being processed again.
 
-The engine implements strict scoring precedence:
-1. **Base Rule Score**: $S_{\text{raw}}$ computed from detected typology (e.g., 40, 50, 35, 30, 20, 15).
-2. **PEP & KYC Adders**:
-   $$S_{\text{adjusted}} = S_{\text{raw}} + A_{\text{PEP}} + A_{\text{KYC}}$$
-   where $A_{\text{PEP}} = 20$ (if PEP or linked family member) and $A_{\text{KYC}} = 10$ (if KYC expired on transaction date).
-3. **Customer Risk Multiplier**:
-   $$S_{\text{weighted}} = S_{\text{adjusted}} \times M_{\text{risk}}$$
-   Multipliers: `HIGH` = 1.5, `MEDIUM` = 1.0, `LOW` = 0.8.
-4. **Suppression & Merge Bonus**:
-   If the same customer and same rule fired within 7 days of a previous alert:
-   - Merged into the existing case (`action: MERGED`).
-   - Adds +5 points per merge event, capped at +20:
-     $$S_{\text{final}} = S_{\text{weighted}} + \min(\text{merge\_count} \times 5, 20)$$
-5. **Threshold Evaluation**:
-   - $S_{\text{final}} \ge 50.0 \implies$ Alert Generated.
-   - $S_{\text{final}} \ge 70.0 \implies$ `PRIORITY` Case.
-   - **STR Priority Override**: Any customer who had an STR filed within the preceding 6 months (183 days) is automatically tagged `PRIORITY` on all new alerts regardless of score.
+## 6. Business Rules
 
----
+The rules engine evaluates transaction activity using the configured business rules.
 
-## 6. Case Management State Machine & SLA Clocks
+### Business Rules
 
+| Rule ID | Business Rule | Description |
+|---|---|---|
+| BR-01 | Daily Cash Transaction Reporting | Identifies cash transactions exceeding the configured daily reporting threshold of ₹10,00,000. |
+| BR-02 | Monthly Cash Transaction Reporting | Identifies customers whose monthly cash transaction total exceeds ₹10,00,000. |
+| BR-03 | Structuring Detection | Detects 3 or more deposits between ₹9,00,000 and ₹9,99,999 within a rolling 7-day period. Additional scoring applies when multiple branches are involved. |
+| BR-04 | Transaction Velocity | Identifies unusually high incoming transaction activity compared with the customer's historical turnover. |
+| BR-05 | Rapid Movement of Funds | Detects incoming funds above INR2,00,000 followed by movement of at least 80% of the amount within 48 hours. |
+| BR-06 | Round-Tripping Detection | Identifies suspicious circular movement of funds involving the same counterparty. |
+| BR-07 | Dormant Account Reactivation | Flags previously inactive accounts that show significant transaction activity after 365 days of dormancy. |
+| BR-08 | PEP Monitoring | Applies additional monitoring to transactions above ₹5,00,000 involving Politically Exposed Persons (PEPs). |
+| BR-09 | KYC Expiry Monitoring | Flags transactions above ₹1,00,000 involving customers with expired KYC status. |
+| BR-10 | Customer Risk Multipliers | Applies risk multipliers based on customer risk rating: LOW = 0.8, MEDIUM = 1.0, HIGH = 1.5. |
+| BR-11 | Alert and Priority Thresholds | Generates an alert when the final risk score reaches 50 and marks it as priority when the score reaches 70. |
+| BR-12 | Alert Merging Bonus | Applies an additional score when multiple suspicious findings are merged into a single alert, subject to a maximum bonus of 20 points. |
+
+*Note: Thresholds and scoring values describe this project's implemented monitoring configuration. They should not be interpreted as universal regulatory requirements.*
+
+### 6.1 Important Rule Parameters
+
+### 6.1 Important Rule Parameters
+
+The implementation uses the following configured conditions:
+
+- Daily and monthly cash transaction reporting threshold: more than ₹10,00,000.
+- Structuring: at least three cash deposits in the ₹9,00,000 to ₹9,99,999 range within a rolling seven-day window.
+- Velocity: incoming credits are compared against expected monthly turnover over a rolling 30-day window.
+- Rapid movement: qualifying incoming credits above ₹2,00,000 are checked for at least 80% outgoing movement within 48 hours.
+- Dormant account activity: checks a 365-day inactive period followed by qualifying recent activity.
+- PEP monitoring: checks qualifying transactions above ₹5,00,000.
+- Expired KYC: checks qualifying credits above ₹1,00,000 after the KYC expiry date.
+
+## 7. Risk Scoring and Alert Generation
+
+The alert manager combines rule scores and customer risk information to calculate a weighted score.
+
+The scoring sequence is:
+
+1. Calculate the raw rule score.
+2. Add applicable PEP or KYC score adjustments.
+3. Apply the customer risk multiplier.
+4. Add the applicable alert merge bonus.
+5. Evaluate the final weighted score against the alert thresholds.
+
+### 7.1 Customer Risk Multipliers
+
+| Customer Risk | Multiplier |
+|---|---:|
+| LOW | 0.8 |
+| MEDIUM | 1.0 |
+| HIGH | 1.5 |
+
+### 7.2 Alert Thresholds
+
+| Weighted Score | Classification |
+|---|---|
+| Below 50 | No normal alert |
+| 50 to below 70 | Alert |
+| 70 or above | Priority alert |
+
+The implementation also includes alert merging and suppression logic to reduce repeated alert generation for qualifying findings.
+
+The system maintains evidence transaction IDs to support review of generated alerts.
+
+## 8. Case Management
+
+When an alert requires investigation, the case manager supports the case lifecycle.
+
+```text
+OPEN
+  |
+  v
+UNDER_REVIEW
+  |
+  v
+ESCALATED
+  |
+  v
+STR_FILED
 ```
-           [Alert Raised]
-                 │
-                 ▼
-             ┌───────┐
-             │ OPEN  │
-             └───┬───┘
-                 │ START_REVIEW
-                 ▼
-         ┌───────────────┐
-         │ UNDER_REVIEW  │
-         └───┬───────┬───┘
-             │       │
-    ESCALATE │       │ CLOSE_NO_ACTION
-             ▼       ▼
-       ┌───────────┐ ┌──────────────────┐
-       │ ESCALATED │ │ CLOSED_NO_ACTION │
-       └───┬───┬───┘ └──────────────────┘
-           │   │
-  FILE_STR │   │ CLOSE_NO_ACTION
-           ▼   ▼
-     ┌───────────┐
-     │ STR_FILED │ (Irreversible State)
-     └───────────┘
-```
 
-### 6.1 Regulatory SLA Audit Clocks
-SLA clocks calculate elapsed **working days** using `calendar.csv`. The trigger date is day 0; counting begins at $t + 1$ day:
-1. **Initial Review SLA**:
-   - `NORMAL` Case: Must be reviewed (`START_REVIEW`) within **2 working days**.
-   - `PRIORITY` Case: Must be reviewed (`START_REVIEW`) within **1 working day**.
-   - If elapsed working days exceeds the limit, the transition breach is recorded as `UNDER_REVIEW`.
-2. **STR Filing SLA**:
-   - Must be filed (`FILE_STR`) within **7 working days** of escalation (`ESCALATED`).
-   - If elapsed working days $> 7$, the transition breach is recorded as `STR_FILED`.
+A case may also be closed with no further action when the permitted workflow conditions are satisfied.
 
----
+### 8.1 Case Management Features
 
-## 7. Edge-Case Verification Log
+- Sequential case identification
+- Customer-based active case management
+- Alert association with cases
+- Validation of permitted case actions
+- Tracking of review and escalation dates
+- Working-day SLA calculations
+- Recording of SLA breaches
+- Prevention of invalid transitions after STR filing
 
-The system was verified against all 8 planted scenarios and extra traps documented in the official sample pack:
+### 8.2 SLA Tracking
 
-| Scenario | Customer | Planted Behavior | Engine Result | Status |
-|---|---|---|---|---|
-| **EC-01** | CUST-032 / CUST-009 | Deposit exactly ₹9,00,000 inside band; deposit exactly ₹10,00,000 does not trigger daily CTR. | CUST-032 triggers BR-03; CUST-009 does not trigger BR-01. | PASS |
-| **EC-02** | CUST-018 | Third deposit exactly 7 days ($7 \times 24\,\text{h}$) after first; deposits across BR-01 and BR-02. | Triggers BR-03 with raw score 60 (40 base + 20 multi-branch); weighted score 90.0 (`PRIORITY`). | PASS |
-| **EC-03** | CUST-007 | RTGS credit ₹5,00,000 followed by ₹4,00,000 out at exact hour 48. | Triggers BR-05 with raw score 35; hour 48 inclusive. | PASS |
-| **EC-04** | CUST-015 | Account dormant for 451 days with only SB interest credits; reactivated with ₹5,90,000 credits. | Interest credits excluded from customer activity; dormancy correctly identified. | PASS |
-| **EC-05** | CUST-030 | LOW-risk customer with velocity credits; sub-threshold on day 1 (40.0) merges twice to reach exactly 50.0. | ALT-00019 raised on 2026-10-15 with weighted score 50.0. | PASS |
-| **EC-06** | CUST-023 | Second structuring set occurs on day 7 after prior alert. | Merged into CASE-0001 on exact 7-day boundary with +5 merge bonus. | PASS |
-| **EC-07** | CUST-010 | PRIORITY case opened Friday 2026-09-18; Sat 2026-09-19 is marked working in calendar. | Review on Monday 2026-09-21 breaches 1-working-day SLA; logged as `UNDER_REVIEW`. | PASS |
-| **EC-08** | CUST-013 | KYC expiry date 2026-10-07; credit on 2026-10-07 valid; credit on 2026-10-08 expired. | Credit on 10-07 does not alert; credit on 10-08 scores 15. | PASS |
-| **Trap: PEP Link** | CUST-021 | Family member linked to PEP (CUST-020) via `pep_linked_customer`. | Triggers BR-08 on ₹5,50,000 deposit; receives +20 PEP adder (score 60.0). | PASS |
-| **Trap: STR Tag** | CUST-023 | After STR filed on 2026-09-16, subsequent rapid movement alert occurs on 2026-10-22. | Overridden to `priority: true` due to 6-month STR tag. | PASS |
-| **Trap: New Account** | CUST-019 | Account opened 2026-08-10 ($< 90$ days old); turnover declared as ₹8,00,000. | Turnover overridden to ₹2,00,000; credits $> 5\times$ trigger BR-04 with score 50. | PASS |
-| **Trap: Duplicate** | N/A | Duplicate transaction `TXN-000084` planted in `txn_2026_09_10.csv`. | Counted once; exactly 1 duplicate recorded. | PASS |
-| **Trap: Invalid Row** | N/A | `TXN-000330` with `amount = 0.00` in `txn_2026_10_09.csv`. | Rejected and recorded in invalid records; not evaluated in rules. | PASS |
+The configured workflow uses:
 
----
+| Activity | SLA |
+|---|---|
+| Normal-priority review | 2 working days |
+| Priority review | 1 working day |
+| STR filing after escalation | 7 working days |
 
-## 8. Decision Log & Design Rationale
+Working-day calculations use the supplied calendar rather than assuming every weekday is a working day.
 
-1. **Space-Separated Multi-Value Fields**:
-   - *Rationale*: Section 212 of the authoritative `README.md` explicitly specifies: *"evidence IDs space-separated in chronological order."* Using spaces prevents CSV parsing collisions and complies with automated evaluation test fixtures.
-2. **Representation of SLA Breaches**:
-   - *Rationale*: Section 234 dictates: *"`sla_breaches` lists the breached transitions separated by spaces (e.g. `UNDER_REVIEW`), empty if none."* Transition target states (`UNDER_REVIEW`, `STR_FILED`) are recorded rather than informal verbs (`REVIEW`, `STR`).
-3. **Idempotent Day Execution**:
-   - *Rationale*: Added `self.processed_days` tracking to `AMLCommandProcessor` to guarantee that executing `RUN_DAY` twice on the same date will not duplicate alerts or re-ingest records.
-4. **Zero-Dependency Architecture**:
-   - *Rationale*: Built exclusively with Python's built-in `csv`, `datetime`, `collections`, and `unittest` packages. Guarantees 100% portable evaluation in any Python 3.10+ environment without environment version mismatches.
+## 9. Reports Generated
 
----
+The system generates the following CSV reports:
 
-## 9. Comprehensive Viva Voce Preparation Guide
+| Report | Purpose |
+|---|---|
+| `alert_log.csv` | Records generated alerts, scoring details and evidence |
+| `case_register.csv` | Records investigation cases, states and SLA information |
+| `ctr_YYYY_MM.csv` | Records applicable cash transaction reporting findings |
+| `str_report.csv` | Records suspicious transaction reporting information |
 
-### Q1: What is the primary difference between a CTR and an STR?
-**Answer:** A Cash Transaction Report (CTR) is an objective, threshold-based regulatory filing for all cash transactions exceeding ₹10,00,000 in a day or calendar month per account, regardless of whether any wrongdoing is suspected. A Suspicious Transaction Report (STR) is subjective and risk-based, filed whenever transactions exhibit patterns indicative of money laundering, structuring, or illicit origin regardless of amount.
+The report generator uses defined column orders to maintain consistent output formats.
 
-### Q2: How does the system prevent structuring (smurfing)?
-**Answer:** Under BR-03, the system maintains rolling 7-day chronological windows per account and identifies deposits between ₹9,00,000 and ₹9,99,999. If 3 or more such deposits occur, an alert is raised with base score 40. If the customer distributed these deposits across 2 or more physical branches to avoid local scrutiny, the system adds +20 points.
+## 10. Testing and Validation
 
-### Q3: Explain how the working-day SLA calculation handles bank holidays and weekends.
-**Answer:** The `CaseManager.working_days_between(start_date, end_date)` function iterates day-by-day excluding the start date through the end date, looking up each date in `calendar.csv`. A day increments the SLA clock if and only if `is_working_day == True`. This automatically skips Sundays, second/fourth Saturdays, and gazetted holidays, while counting working Saturdays (such as Saturday 2026-09-19 in EC-07).
+The project includes automated unit tests and integration tests.
 
-### Q4: Why are interest credits excluded from dormancy calculations?
-**Answer:** Under RBI and PMLA guidelines, bank-initiated interest postings (`INTEREST_CREDIT`) are system-generated and do not represent customer-initiated activity. An account remains dormant if the customer has not actively transacted for 365 days. Counting interest credits as activity would improperly reset the dormancy clock.
+The test suite covers:
 
-### Q5: What is the exact mathematical scoring formula under BR-16?
-**Answer:**
-$$\text{Score} = \left(\left(\text{Raw Score} + \text{PEP Adder} + \text{KYC Adder}\right) \times \text{Risk Multiplier}\right) + \text{Merge Bonus}$$
-- PEP Adder = +20 (for PEPs and family members).
-- KYC Adder = +10 (if KYC expired on transaction date).
-- Risk Multiplier: HIGH (1.5x), MEDIUM (1.0x), LOW (0.8x).
-- Merge Bonus: +5 for each repeat finding within 7 days, capped at +20.
-- Alert Threshold: $\ge 50.0$ for Normal alert; $\ge 70.0$ for Priority alert.
-- STR Override: Customers with an STR filed in the last 6 months are automatically marked `priority: true`.
+- Customer and transaction processing
+- Transaction validation
+- Duplicate record handling
+- Business rule evaluation
+- Risk score calculation
+- Alert generation
+- Case lifecycle transitions
+- SLA calculations
+- Report schemas and generated records
+- Complete command-driven execution
+- Selected boundary and edge cases
 
----
+### Test Execution
 
-## 10. Test Execution Verification
+Run the following command from the project root:
 
 ```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
+python -m unittest discover -s tests -v
 ```
 
-### Verification Output:
-- **Total Tests:** 28
-- **Passed:** 28
-- **Failed:** 0
-- **Errors:** 0
-- **Execution Time:** ~0.9 seconds
+**Latest recorded result:** 28 tests passed.
+
+The integration test also checks expected processing counts and the generated report files for the current project dataset.
+
+## 11. Design Decisions
+
+The main design decisions include:
+
+- Python was selected for its readability and standard-library support.
+- CSV files were used for structured input and output.
+- The application was divided into independent modules.
+- Command-file execution was used instead of a graphical interface.
+- Validation is performed before transaction rule evaluation.
+- A working-day calendar is used for SLA calculations.
+- Automated tests are used to check business rules and system behaviour.
+- Reports use consistent column names and ordering.
+
+Further implementation details and rationale are recorded in `decision_log.md`.
+
+## 12. Limitations and Future Enhancements
+
+Possible future enhancements include:
+
+- Additional integration tests for repeated execution and report date filtering.
+- More comprehensive boundary testing for SLA deadlines.
+- Additional monitoring rules if required by the assignment.
+- Improved report presentation.
+- Sanctions name screening and transaction network analysis as optional extensions, subject to assignment scope.
+
+## 13. Conclusion
+
+The AML Transaction Monitoring System demonstrates a modular approach to transaction validation, rule-based monitoring, risk scoring, alert management, case workflows and report generation.
+
+The project combines business-rule implementation with automated testing to provide a structured academic demonstration of an AML monitoring workflow.
+
+---
+
+**Team T116**  
+Atria Institute of Technology  
+PS-025 — AML Transaction Monitoring

@@ -1,0 +1,75 @@
+# PS-025 – AML Transaction Monitoring System
+## Decision Log
+
+**Team:** T116  
+**Domain:** BFSI Compliance  
+**Technology:** Python 3.10+  
+
+### 1. Technology Selection
+**Decision:** Use Python with standard-library modules only.
+
+**Reason:** Python supports CSV processing, date calculations, file handling and automated testing without requiring third-party dependencies.
+
+### 2. Application Architecture
+**Decision:** Use a deterministic, command-file-driven backend architecture.
+
+**Reason:** Processing commands in a defined order helps produce consistent and reproducible results.
+
+### 3. Data Storage
+**Decision:** Use CSV files for customer information, accounts, transactions and generated reports.
+
+**Reason:** CSV files are simple to inspect, exchange and validate against the assignment's expected output.
+
+### 4. Modular Design
+**Decision:** Separate the application into modules for data loading, transaction processing, rule detection, alert management, case management and report generation.
+
+**Reason:** This improves code organization, testing and maintainability.
+
+### 5. Transaction Validation
+**Decision:** Validate transaction records before processing them and identify invalid or duplicate records.
+
+**Reason:** Incorrect or repeated records can affect monitoring results and should not be treated as valid transactions.
+
+### 6. Business Rule Evaluation
+**Decision:** Implement AML monitoring rules as separate rule detectors.
+
+**Reason:** Individual rules can be tested and maintained independently.
+
+### 7. Risk Scoring
+**Decision:** Apply customer risk multipliers when calculating weighted alert scores.
+
+**Reason:** Customer risk levels should influence the priority of alerts.
+
+### 8. Alert Suppression and Merging
+**Decision:** Apply risk scoring before making alert threshold and suppression decisions.
+
+**Reason:** Suppression decisions should consider the weighted risk score rather than relying only on the initial raw score.
+
+### 9. Case Management
+**Decision:** Maintain investigation cases using defined case states and controlled state transitions.
+
+**Reason:** This provides a consistent way to track investigations and prevent invalid case actions.
+
+### 10. Working-Day SLA Calculation
+**Decision:** Use the supplied working-day calendar for case deadlines and SLA monitoring.
+
+**Reason:** Regulatory deadlines must account for working days rather than simply counting calendar days.
+
+### 11. Report Generation
+**Decision:** Generate separate CSV reports for alerts, cases, CTR and STR records.
+
+**Reason:** Separate reports make it easier to review monitoring results and regulatory reporting information.
+
+### 12. Automated Testing
+**Decision:** Use Python's built-in `unittest` framework.
+
+**Reason:** It allows automated verification without installing additional testing packages.
+
+### 13. Edge-Case Testing
+**Decision:** Include tests for threshold boundaries, rolling windows, duplicate records, case transitions and SLA conditions.
+
+**Reason:** Edge cases are important to ensure that the system behaves consistently with the assignment specifications.
+
+---
+
+**Note:** These decisions describe the intended design of the project. Each item should be checked against the final implementation before submission.

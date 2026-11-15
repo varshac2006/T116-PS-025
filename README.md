@@ -10,7 +10,7 @@
 
 ## 1. Project Overview
 
-This repository contains the submission-ready implementation of **PS-025 - AML Transaction Monitoring System** for BFSI regulatory compliance. The system ingests daily retail banking transactions, validates data integrity, evaluates Anti-Money Laundering (AML) typologies and business rules (BR-01 through BR-16), manages investigative cases with working-day SLA clocks, and produces regulatory reports (CTR, STR, Alert Log, Case Register) matching official FIU-IND and assignment specifications.
+This repository contains the submission-ready implementation of **PS-025 - AML Transaction Monitoring System** for BFSI regulatory compliance. The system ingests daily retail banking transactions, validates data integrity, evaluates Anti-Money Laundering (AML) typologies and business rules (BR-01 through BR-12), manages investigative cases with working-day SLA clocks, and produces regulatory reports (CTR, STR, Alert Log, Case Register) matching official FIU-IND and assignment specifications.
 
 ### Key Highlights
 - **100% Native Python 3.10+**: No third-party package dependencies required (pandas, numpy, or pytest not needed). Completely self-contained and cross-platform.
@@ -77,9 +77,9 @@ This processes all 60 daily transaction files, executes case management actions,
 ### Run Automated Test Suite
 Run the test suite using Python built-in unittest runner:
 ```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
+py -m unittest discover -s tests -v
 ```
-All **28 automated tests** will execute and pass in under 1 second.
+The automated test suite contains 28 tests covering business rules, edge cases, case management, report generation, and end-to-end system execution.
 
 ---
 
