@@ -1,5 +1,6 @@
 
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from src.data_loader import (
     load_all_master_data,
@@ -38,6 +39,9 @@ from src.report_generator import (
 class AMLCommandProcessor:
 
     def __init__(self):
+        self.output_dir = Path("output")
+        self.output_dir.mkdir(exist_ok=True)
+
         self.master_data = load_all_master_data()
 
         self.customers = self.master_data["customers"]
@@ -631,6 +635,7 @@ class AMLCommandProcessor:
                 monthly_findings=self.rule_findings.get("monthly_ctr", []),
                 accounts=self.accounts,
                 month=month,
+                output_dir=self.output_dir,
             )
 
             print(f"\nCTR report generated successfully: {output_path}")
@@ -651,6 +656,7 @@ class AMLCommandProcessor:
                 alert_records=self.alert_records,
                 from_date=from_date,
                 to_date=to_date,
+                output_dir=self.output_dir,
             )
 
             print(f"\nAlert log generated successfully: {output_path}")
@@ -671,6 +677,7 @@ class AMLCommandProcessor:
             output_path = generate_case_register(
                 case_records=case_records,
                 as_of_date=as_of_date,
+                output_dir=self.output_dir,
             )
 
             print(f"\nCase register generated successfully: {output_path}")
@@ -691,6 +698,7 @@ class AMLCommandProcessor:
                 str_records=self.str_records,
                 from_date=from_date,
                 to_date=to_date,
+                output_dir=self.output_dir,
             )
 
             print(f"\nSTR report generated successfully: {output_path}")
