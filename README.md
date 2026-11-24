@@ -116,3 +116,8 @@ All generated reports in `reports/` strictly adhere to the official sample data 
 
 For complete architecture details, regulatory background, decision log, and viva interview preparation, refer to:
 - [DESIGN_DOCUMENT.md](DESIGN_DOCUMENT.md)
+## Demo Video
+
+**AML Transaction Monitoring – Project Demonstration**
+
+[Watch the Demo Video](https://drive.google.com/file/d/1K9WswCsKTbytFn1-CGdfkltN0yH7eEQ-/view?usp=drivesdk)
